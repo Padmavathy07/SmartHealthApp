@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>VitalTrack — Smart Health Monitor</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/static/css/style.css"/>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+
+<!-- ═══════════════════ AUTH SCREEN ═══════════════════ -->
+<div id="auth-screen" class="auth-screen">
+  <div class="auth-bg">
+    <div class="auth-blob b1"></div>
+    <div class="auth-blob b2"></div>
+    <div class="auth-blob b3"></div>
+  </div>
+  <div class="auth-card">
+    <div class="auth-logo">♡</div>
+    <h1 class="auth-title">VitalTrack</h1>
+    <p class="auth-sub">Smart Health Monitoring System</p>
+
+    <div class="auth-tabs">
+      <button class="auth-tab active" id="tab-login">Login</button>
+      <button class="auth-tab" id="tab-register">Register</button>
+    </div>
+
+    <!-- LOGIN -->
+    <div id="login-form">
+      <div class="auth-input-group">
+        <label>Email</label>
+        <input type="email" id="login-email" placeholder="demo@health.com" />
+      </div>
+      <div class="auth-input-group">
+        <label>Password</label>
+        <input type="password" id="login-password" placeholder="demo123" />
+      </div>
+      <div class="auth-hint">Try: demo@health.com / demo123</div>
+      <button class="btn-auth" id="btn-login">Login →</button>
+      <div class="auth-error" id="login-error"></div>
+    </div>
+
+    <!-- REGISTER -->
+    <div id="register-form" style="display:none">
+      <div class="auth-input-group">
+        <label>Full Name</label>
+        <input type="text" id="reg-name" placeholder="Your name" />
+      </div>
+      <div class="auth-input-group">
+        <label>Email</label>
+        <input type="email" id="reg-email" placeholder="email@example.com" />
+      </div>
+      <div class="auth-input-group">
+        <label>Password</label>
+        <input type="password" id="reg-password" placeholder="Create password" />
+      </div>
+      <button class="btn-auth" id="btn-register">Create Account →</button>
+      <div class="auth-error" id="reg-error"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════ APP SHELL ═══════════════════ -->
+<div id="app-shell" style="display:none; min-height:100vh;">
+<div id="sidebar-overlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:99;" onclick="document.getElementById('sidebar').classList.remove('open');this.style.display='none';"></div>
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar" id="sidebar">
+    <div class="brand">
+      <span class="brand-icon">♡</span>
+      <span class="brand-name">VitalTrack</span>
+    </div>
+    <nav>
+      <a href="#" class="nav-link active" data-page="dashboard">
+        <span class="nav-icon">⬡</span> Dashboard
+      </a>
+      <a href="#" class="nav-link" data-page="log">
+        <span class="nav-icon">＋</span> Log Entry
+      </a>
+      <a href="#" class="nav-link" data-page="history">
+        <span class="nav-icon">≡</span> History
+      </a>
+      <a href="#" class="nav-link" data-page="bmi">
+        <span class="nav-icon">◎</span> BMI Calc
+      </a>
+      <a href="#" class="nav-link" data-page="alerts">
+        <span class="nav-icon">△</span> Alerts
+        <span class="badge" id="alert-badge" style="display:none">0</span>
+      </a>
+    </nav>
+    <div class="sidebar-footer">
+      <div class="user-chip">
+        <span class="user-avatar" id="user-avatar-char">P</span>
+        <span class="user-name" id="sidebar-username">User</span>
+      </div>
+      <button class="btn-logout" id="btn-logout">⏻</button>
+    </div>
+  </aside>
+
+  <!-- MAIN -->
+  <main class="main">
+    <header class="topbar">
+      <div class="topbar-left">
+        <button class="hamburger" id="hamburger">☰</button>
+        <div class="page-title" id="page-title">Dashboard</div>
+      </div>
+      <div class="topbar-right">
+        <span class="date-chip" id="today-date"></span>
+      </div>
+    </header>
+
+    <!-- ── DASHBOARD ── -->
+    <section class="page active" id="page-dashboard">
+      <div class="stats-grid">
+        <div class="stat-card card-steps">
+          <div class="stat-label">Today's Steps</div>
+          <div class="stat-value" id="stat-steps">—</div>
+          <div class="stat-sub">Goal: 10,000</div>
+          <div class="stat-bar"><div class="stat-fill" id="bar-steps" style="width:0%"></div></div>
+        </div>
+        <div class="stat-card card-calories">
+          <div class="stat-label">Calories Burned</div>
+          <div class="stat-value" id="stat-calories">—</div>
+          <div class="stat-sub">Goal: 500 kcal</div>
+          <div class="stat-bar"><div class="stat-fill" id="bar-calories" style="width:0%"></div></div>
+        </div>
+        <div class="stat-card card-heart">
+          <div class="stat-label">Heart Rate</div>
+          <div class="stat-value" id="stat-heart">—</div>
+          <div class="stat-sub">Normal: 60–100 bpm</div>
+          <div class="pulse-dot" id="pulse-dot"></div>
+        </div>
+        <div class="stat-card card-bmi">
+          <div class="stat-label">BMI Index</div>
+          <div class="stat-value" id="stat-bmi">—</div>
+          <div class="stat-sub" id="bmi-status-dash">—</div>
+        </div>
+      </div>
+
+      <div class="charts-row">
+        <div class="chart-card wide">
+          <div class="chart-header">
+            <span>7-Day Overview</span>
+            <div class="chart-legend">
+              <span class="leg steps-leg">▪ Steps</span>
+              <span class="leg cal-leg">▪ Calories</span>
+            </div>
+          </div>
+          <canvas id="weeklyChart"></canvas>
+        </div>
+        <div class="chart-card">
+          <div class="chart-header"><span>Activity Split</span></div>
+          <canvas id="pieChart"></canvas>
+        </div>
+      </div>
+
+      <div class="health-status-banner" id="health-banner">
+        <span class="banner-icon">✦</span>
+        <span id="health-status-text">Log today's data to see your health status.</span>
+      </div>
+    </section>
+
+    <!-- ── LOG ENTRY ── -->
+    <section class="page" id="page-log">
+      <div class="form-card">
+        <h2 class="form-title">Log Health Entry</h2>
+        <p class="form-desc">Record today's health parameters. Existing entries for the same date will be updated.</p>
+        <div class="form-grid">
+          <div class="form-group">
+            <label>Date</label>
+            <input type="date" id="log-date" />
+          </div>
+          <div class="form-group">
+            <label>Steps Walked</label>
+            <input type="number" id="log-steps" placeholder="e.g. 8000" min="0" />
+          </div>
+          <div class="form-group">
+            <label>Calories Burned (kcal)</label>
+            <input type="number" id="log-calories" placeholder="e.g. 420" min="0" />
+          </div>
+          <div class="form-group">
+            <label>Heart Rate (bpm)</label>
+            <input type="number" id="log-heart" placeholder="e.g. 78" min="0" />
+          </div>
+          <div class="form-group">
+            <label>Weight (kg)</label>
+            <input type="number" id="log-weight" placeholder="e.g. 65" step="0.1" min="0" />
+          </div>
+          <div class="form-group">
+            <label>Height (m)</label>
+            <input type="number" id="log-height" placeholder="e.g. 1.65" step="0.01" min="0" />
+          </div>
+          <div class="form-group full">
+            <label>Notes</label>
+            <textarea id="log-notes" placeholder="Any symptoms, observations, how you felt today..."></textarea>
+          </div>
+        </div>
+        <button class="btn-primary" id="btn-save">Save Entry</button>
+        <div class="save-msg" id="save-msg"></div>
+      </div>
+    </section>
+
+    <!-- ── HISTORY ── -->
+    <section class="page" id="page-history">
+      <div class="history-header">
+        <h2>Health Records</h2>
+        <button class="btn-danger" id="btn-clear-all">Clear All Records</button>
+      </div>
+      <div class="table-wrap">
+        <table class="health-table">
+          <thead>
+            <tr>
+              <th>Date</th>
+              <th>Steps</th>
+              <th>Calories</th>
+              <th>Heart Rate</th>
+              <th>BMI</th>
+              <th>Status</th>
+              <th>Delete</th>
+            </tr>
+          </thead>
+          <tbody id="history-body">
+            <tr><td colspan="7" class="empty-row">No records yet. Start logging!</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- ── BMI ── -->
+    <section class="page" id="page-bmi">
+      <div class="bmi-layout">
+        <div class="form-card bmi-card">
+          <h2 class="form-title">BMI Calculator</h2>
+          <div class="form-group">
+            <label>Weight (kg)</label>
+            <input type="number" id="bmi-weight" placeholder="e.g. 65" step="0.1" />
+          </div>
+          <div class="form-group">
+            <label>Height (m)</label>
+            <input type="number" id="bmi-height" placeholder="e.g. 1.65" step="0.01" />
+          </div>
+          <button class="btn-primary" id="btn-bmi">Calculate</button>
+
+          <div class="bmi-result" id="bmi-result">
+            <div class="bmi-number" id="bmi-number">—</div>
+            <div class="bmi-category" id="bmi-category">Enter values above</div>
+            <div class="bmi-scale">
+              <div class="scale-track">
+                <div class="scale-segment seg-under">Under</div>
+                <div class="scale-segment seg-normal">Normal</div>
+                <div class="scale-segment seg-over">Over</div>
+                <div class="scale-segment seg-obese">Obese</div>
+              </div>
+              <div class="scale-needle" id="scale-needle"></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="bmi-info">
+          <h3>BMI Reference Guide</h3>
+          <div class="bmi-ranges">
+            <div class="range-item range-under">
+              <span class="range-label">Underweight</span>
+              <span class="range-val">Below 18.5</span>
+              <span class="range-tip">Consider increasing caloric intake and consulting a nutritionist.</span>
+            </div>
+            <div class="range-item range-normal">
+              <span class="range-label">Normal Weight</span>
+              <span class="range-val">18.5 – 24.9</span>
+              <span class="range-tip">Maintain your healthy lifestyle with balanced diet and exercise.</span>
+            </div>
+            <div class="range-item range-over">
+              <span class="range-label">Overweight</span>
+              <span class="range-val">25.0 – 29.9</span>
+              <span class="range-tip">Increase physical activity and focus on a balanced diet.</span>
+            </div>
+            <div class="range-item range-obese">
+              <span class="range-label">Obese</span>
+              <span class="range-val">30.0 and above</span>
+              <span class="range-tip">Consult a healthcare professional for a personalised plan.</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ── ALERTS ── -->
+    <section class="page" id="page-alerts">
+      <div class="alerts-header">
+        <h2>Health Alerts</h2>
+        <button class="btn-secondary" id="btn-mark-read">Mark All Read</button>
+      </div>
+      <div id="alerts-list" class="alerts-list">
+        <div class="empty-alerts">No alerts yet. Keep logging your health data!</div>
+      </div>
+    </section>
+
+  </main>
+</div>
+
+<script src="/static/js/app.js"></script>
+</body>
+</html>
